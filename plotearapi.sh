@@ -1,12 +1,15 @@
 #!/usr/bin/bash
 #clear
+SCRIPTS="/home/hriquelmez/Desarrollo"
+PROYECTO="revisaapis"
 #archivo1="dic_2025_full.csv"
 read -p "Archivo .csv fuente eventquery: " archivo1
 cp $archivo1 origen_$archivo1
 #read -p "Archivo .csv consultaapi EMSC : " archivo2
 archivo1aux=${archivo1:0:$((${#archivo1}-4))}
 archivo1dat=$archivo1aux'.dat'
-python3 /home/hriquelmez/Revision_Local/proc_query_harz_2.py $archivo1 $archivo1dat
+#python3 /home/hriquelmez/Revision_Local/proc_query_harz_2.py $archivo1 $archivo1dat
+python3 $SCRIPTS/$PROYECTO/proc_query_harz_2.py $archivo1 $archivo1dat
 #echo -e "\n***** Se consolida consultas api *****"
 # copia archivo csv del eventquery oredenado con un nombre similar a las otras consultas
 #cp new_2_$archivo1 consultaapi_CSN.csv
@@ -34,7 +37,8 @@ do
             fuente="eventquery"
             # se mantienen llamando a este archivo con estructura diferente para que al plotear se mantenga
             # diferenciando eventos percibidos
-            python3 /home/hriquelmez/Revision_Local/generajsonapi.py new_2_$archivo1 $fuente
+            #python3 /home/hriquelmez/Revision_Local/generajsonapi.py new_2_$archivo1 $fuente
+            python3 $SCRIPTS/$PROYECTO/generajsonapi.py new_2_$archivo1 $fuente
             break
         fi
         if [ $respuesta = "2" ]
@@ -42,7 +46,8 @@ do
             echo -e "\n***** Procesando datos extraidos desde EMSC *****"
             #python3 /home/hriquelmez/Revision_Local/proc_query_harz_2.py $1 $2
             fuente="EMSC"
-            python3 /home/hriquelmez/Revision_Local/generajsonapi.py consultaapi_EMSC.csv $fuente
+            #python3 /home/hriquelmez/Revision_Local/generajsonapi.py consultaapi_EMSC.csv $fuente
+            python3 $SCRIPTS/$PROYECTO/generajsonapi.py consultaapi_EMSC.csv $fuente
             break
         fi
         if [ $respuesta = "3" ]
@@ -50,7 +55,8 @@ do
             echo -e "\n***** Procesando datos extraidos desde USGS *****"
             #python3 /home/hriquelmez/Revision_Local/proc_query_harz_2.py $1 $2
             fuente="USGS"
-            python3 /home/hriquelmez/Revision_Local/generajsonapi.py  consultaapi_NEIC.csv $fuente
+            #python3 /home/hriquelmez/Revision_Local/generajsonapi.py  consultaapi_NEIC.csv $fuente
+            python3 $SCRIPTS/$PROYECTO/generajsonapi.py  consultaapi_NEIC.csv $fuente
             break
         fi
         if [ $respuesta = "4" ]
@@ -58,7 +64,8 @@ do
             echo -e "\n***** Procesando datos extraidos desde GFZ *****"
             #python3 /home/hriquelmez/Revision_Local/proc_query_harz_2.py $1 $2
             fuente="GFZ"
-            python3 /home/hriquelmez/Revision_Local/generajsonapi.py consultaapi_NEIC.csv $fuente
+            #python3 /home/hriquelmez/Revision_Local/generajsonapi.py consultaapi_NEIC.csv $fuente
+            python3 $SCRIPTS/$PROYECTO/generajsonapi.py consultaapi_NEIC.csv $fuente
             break
         fi
         if [ $respuesta = "5" ]
@@ -66,7 +73,8 @@ do
             echo -e "\n***** Procesando datos extraidos que estan fuera de rangos definidos *****"
             #python3 /home/hriquelmez/Revision_Local/proc_query_harz_2.py $1 $2
             fuente="outrangos"
-            python3 /home/hriquelmez/Revision_Local/generajsonapi.py listaoutrango.csv $fuente
+            #python3 /home/hriquelmez/Revision_Local/generajsonapi.py listaoutrango.csv $fuente
+            python3 $SCRIPTS/$PROYECTO/generajsonapi.py listaoutrango.csv $fuente
             break
         fi
         if [ $respuesta = "6" ]
@@ -74,7 +82,8 @@ do
             echo -e "\n***** Procesando datos extraidos que estan fuera de rangos definidos de todas las agencias *****"
             #python3 /home/hriquelmez/Revision_Local/proc_query_harz_2.py $1 $2
             fuente="outrangosfull"
-            python3 /home/hriquelmez/Revision_Local/generajsonapi.py listaoutrangofull.csv $fuente
+            #python3 /home/hriquelmez/Revision_Local/generajsonapi.py listaoutrangofull.csv $fuente
+            python3 $SCRIPTS/$PROYECTO/generajsonapi.py listaoutrangofull.csv $fuente
             break
         fi
         if [ $respuesta = "7" ]
@@ -82,7 +91,7 @@ do
             echo -e "\n***** Procesando datos extraidos desde todas las agencias *****"
             #python3 /home/hriquelmez/Revision_Local/proc_query_harz_2.py $1 $2
             fuente="todas"
-            python3 /home/hriquelmez/Revision_Local/generajsonapi.py listaapifinal.csv $fuente
+            python3 $SCRIPTS/$PROYECTO/generajsonapi.py listaapifinal.csv $fuente
             break
         fi
         if [ $respuesta = "8" ]
@@ -111,7 +120,8 @@ then
         ls file*.json > listadojson.txt
         while IFS= read -r linea
         do
-            python3 /home/hriquelmez/Revision_Local/plotearapi.py $linea $fuente
+            #python3 /home/hriquelmez/Revision_Local/plotearapi.py $linea $fuente
+            python3 $SCRIPTS/$PROYECTO/plotearapi.py $linea $fuente
         done < listadojson.txt
         rm listadojson.txt
         if [ $fuente = "eventquery" ]

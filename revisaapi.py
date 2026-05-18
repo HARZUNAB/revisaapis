@@ -755,13 +755,6 @@ df_out_rango.reset_index(drop=True, inplace=True) # resetea el indice luego de o
 salida_out_rango='listaoutrango.csv'
 df_out_rango.to_csv(salida_out_rango, index=True)
 
-##### codigo nuevo #####
-#
-# se debe recorrer el csv o dataframe df_out_rango para ir revisando el df_final
-# y generar un  nuevo  dataframe con los eventos cercanos en una ventana de 6 segundos
-
-
-
 # df_final y df_out_rango deben existir
 
 VENTANA_PROXIMIDAD = timedelta(seconds=6)
@@ -783,7 +776,7 @@ df_out_rango = df_out_rango.dropna(subset=['Latitud', 'Longitud'])
 # Buscando registros en df_final cuya Fecha_Hora esté a +/- 6 segundos de df_out_rango
 indice=0
 
-# ... (mantener conversiones de Latitud/Longitud anteriores)
+# mantener conversiones de Latitud/Longitud anteriores
 
 for _, row_out in df_out_rango.iterrows():
     tiempo_ref = row_out['Fecha_Hora']
@@ -825,41 +818,39 @@ for _, row_out in df_out_rango.iterrows():
             registros_cercanos_lista.append(asociacion)
 
 if registros_cercanos_lista:
-    # 1. Crear DataFrame inicial
+    # Crea DataFrame inicial
     df_previo = pd.DataFrame(registros_cercanos_lista)
     salida_cercanos = 'listaoutrangofull.csv'
     
-    # Guardamos temporalmente para que 'rellena' pueda leerlo como CSV
+    # Guarda temporalmente para que 'rellena' pueda leerlo como CSV
     df_previo.to_csv(salida_cercanos, index=False)
 
-    # 2. Re-procesar con la función 'rellena' para formatear decimales
+    # Re-procesar con la función 'rellena' para formatear decimales
     with open(salida_cercanos, 'r') as csv_file_outrange:
         csvreader_outrange = csv.reader(csv_file_outrange)
         next(csvreader_outrange, None) # Saltar cabecera
         
         lista_out_formateada = []
         dic_out = {}
-        # Llamamos a rellena con el modo 'listaoutrangofull' que ya definiste en tu función
+        # Llama a rellena con el modo 'listaoutrangofull' que ya definiste en tu función
         _, lista_out_formateada, _ = rellena(salida_cercanos, csvreader_outrange, lista_out_formateada, dic_out, 'listaoutrangofull')
 
-    # 3. Guardar el resultado final con el formato de ceros
+    # Guarda el resultado final con el formato de ceros
     df_out_final = pd.DataFrame(lista_out_formateada)
     
-    # Asegurar el orden de columnas para el CSV final
+    # Asegura el orden de columnas para el CSV final
     columnas_finales = [
         'fecha_hora', 'lat', 'lon', 'prof', 'mag', 
         'tipo_mag', 'ref', 'agencia', 'consulta', 'asociado', 'fuerarangos'
     ]
     
-    # Reordenamos solo si las columnas existen
+    # Reordena solo si las columnas existen
     df_out_final = df_out_final[columnas_finales]
     df_out_final.to_csv(salida_cercanos, index=True, encoding='utf-8')
     
     print(f"\n✅ Archivo {salida_cercanos} generado con éxito.", file=sys.stderr)
 else:
     print("No se encontraron asociaciones.", file=sys.stderr)
-
-#########################
 
 #print("\n✅Finalizado")
 
@@ -880,8 +871,8 @@ tiempo_proc=fecha_termino-fecha_inicio
 print(f"\nArchivos generados: {salidatxt}, {salida}, {salida_out_rango}, {salida_cercanos}", file=sys.stderr, end='')
 #print(f"Tiempo de proceso: {tiempo_proc}", file=sys.stderr)
 
-# 2. Imprime ÚNICAMENTE el valor que quieres que Bash reciba
-# En tu caso, la variable 'agencia' que determinaste como base
+# Imprime ÚNICAMENTE el valor que quieres que Bash reciba
+# En este caso, la variable 'agencia' que se determino como base
 print(agencia)
 #time.sleep(30)
 #sys.exit(agencia)
