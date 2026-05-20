@@ -1,41 +1,24 @@
 #!/bin/bash
 SCRIPTS="/home/hriquelmez/Desarrollo"
 PROYECTO="revisaapis"
-
-# saca comentario cuando se desee hacer la consulta a las apis
+# sacar comentario cuando se desee hacer la consulta a las apis por ahora se tiene consultas generadas para pruebas
+# en el directorio de ejecucion debe estar el .csv de la consulta de datos de eventquery
+# ejemplo de ejecucion
+# consultaapi.sh 2026-01-01T00:00:00 2026-01-31T23:59:59 1 # el 1 es minima magnitud
+#python3 /home/hriquelmez/Revision_Local/consultaapi.py $1 $2 $3
 python3 $SCRIPTS/$PROYECTO/consultaapi.py $1 $2 $3
-
-# BUCLE DE VALIDACIÓN: Asegura que el archivo tenga extensión .csv y realmente exista
-while true; do
-    read -p "Archivo .csv fuente eventquery: " archivo1
-    
-    # Verifica si el archivo existe
-    if [ ! -f "$archivo1" ]; then
-        echo -e "El archivo '$archivo1' no existe. Por favor, ingresa un archivo válido.\n"
-        continue
-    fi
-
-    # Verificar si la extensión es estrictamente .csv (ignora mayúsculas/minúsculas)
-    if [[ "$archivo1" == *.csv || "$archivo1" == *.CSV ]]; then
-        break
-    else
-        echo -e "Error: El archivo debe ser obligatoriamente un formato .csv de eventquery.\n"
-    fi
-done
-
-# Continuación normal del script si pasa la validación
-cp "$archivo1" "origen_$archivo1"
-
+read -p "Archivo .csv fuente eventquery: " archivo1
+cp $archivo1 origen_$archivo1
+#read -p "Archivo .csv consultaapi EMSC : " archivo2
 archivo1aux=${archivo1:0:$((${#archivo1}-4))}
 archivo1dat=$archivo1aux'.dat'
-
-python3 $SCRIPTS/$PROYECTO/proc_query_harz_2.py "$archivo1" "$archivo1dat"
-
+#python3 /home/hriquelmez/Revision_Local/proc_query_harz_2.py $archivo1 $archivo1dat
+python3 $CRIPTS/$PROYECTO/proc_query_harz_2.py $archivo1 $archivo1dat
 echo -e "\n***** Se consolida consultas api *****"
 # copia archivo csv del eventquery oredenado con un nombre similar a las otras consultas
 #cp new_2_$archivo1 consultaapi_CSN.csv
 #agenciabase=$(python3 /home/hriquelmez/Revision_Local/revisaapi.py "new_2_$archivo1")
-agenciabase=$(python3 $SCRIPTS/$PROYECTO/revisaapi.py "new_2_$archivo1")
+agenciabase=$(python3 $CRIPTS/$PROYECTO/revisaapi.py "new_2_$archivo1")
 agenciabase=$(echo "$agenciabase" | xargs)
 #echo -e $agenciabase
 echo -e "\n¿Que datos desea procesar para plotear?"

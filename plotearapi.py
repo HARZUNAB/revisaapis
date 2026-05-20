@@ -10,9 +10,9 @@ import csv
 
 # define ruta de mapas utilizados y directorio donde se encuenta el usuario al ejecutar el script plotear
 # en este directorio deben estar los archivos .json que se generaron con anterioridad 
-path_perfil="/home/hriquelmez/Revision_Local/harzmapas/perfiles_seisan"
+path_perfil="/home/hriquelmez/Desarrollo/harzmapas/perfiles_seisan"
 # path mapas planta harz
-path_planta="/home/hriquelmez/Revision_Local/harzmapas/planta_2"
+path_planta="/home/hriquelmez/Desarrollo/harzmapas/planta_2"
 path_ejecucion=os.getcwd()
 
 def crear_canvas(nuevo_ancho, nuevo_alto):
@@ -60,158 +60,289 @@ def ploteando(archivo_plot, perfil_plot, planta_plot, fuente, percibidos, agenci
 
     if (fuente == "eventquery"):
         if not os.path.exists("percibidos.txt"):
-            # archivos de salida
-            archivo_perc=open("percibidos.txt", "w")
-
-            # cabeceras para cada archivo .txt de salida (Para plotear con google earth)
+            archivo_perc = open("percibidos.txt", "w")
             archivo_perc.write("id fecha hora latitud longitud prof mag tipomag percibido\n")
+            archivo_perc.close()
     
-    listaperci=[]
-
-    # Define las coordenadas del mapa base
-
-    # Para mapas perfiles (parametros del perfil a plotear)
-    # Asigna valores para parametros del cuadrante base para canvas para mapa perfil
+    # Asigna valores para parametros del cuadrante base para canvas de perfil
     minY = perfiles_seisan[perfil_plot]["minY"]
     maxY = perfiles_seisan[perfil_plot]["maxY"]
     minX = perfiles_seisan[perfil_plot]["minX"]
     maxX = perfiles_seisan[perfil_plot]["maxX"]
 
-    # Para mapas planta (parametros del mapa planta a plotear)
-    # Asigna valores para parametros del cuadrante base para canvas para mapa planta
+    # Asigna valores para parametros del cuadrante base para canvas de planta
     min_lat = plantas[planta_plot]["minY"]
     max_lat = plantas[planta_plot]["maxY"]
     min_lon = plantas[planta_plot]["minX"]
     max_lon = plantas[planta_plot]["maxX"]
 
-    # Archvo que se va a plotear. Esto esta definido con anterioridad en el diccionario plotear
-    nombre_del_archivo = path_ejecucion+"/"+archivo_plot
-    #print("ploteado", nombre_del_archivo)
+    nombre_del_archivo = path_ejecucion + "/" + archivo_plot
 
-    percibidos=0
-    total_eventos=0
-    evento_percibido=[]
+    total_eventos = 0
+    evento_percibido = []
 
     with open(nombre_del_archivo) as contenido:
-            eventos = json.load(contenido)
-            for evento in eventos:
-
-                #  Definir colores al plotear
-                color1="yellow"
-                color2="red"
-                color3="blue"
-                color4="green"
-                color=color1
-                # Coordenadas geográficas de un evento a plotear
-                id = evento.get('id')
-                fecha_hora = evento.get('fecha hora')
-                lat_punto = float(evento.get('latitud'))
-                lon_punto = float(evento.get('longitud'))
-                prof_punto = float(evento.get('prof'))*-1
+        eventos = json.load(contenido)
+        
+        # =========================================================================
+        # PASO 1: MAPEADO DE COORDENADAS CSN POR EVENTO ASOCIADO
+        # =========================================================================
+        diccionario_csn = {}
+        for ev in eventos:
+            if ev.get('consulta') == 'CSN':
+                id_sismo = ev.get('asociado') or ev.get('id')
+                lat_val = ev.get('latitud') or ev.get('lat')
+                lon_val = ev.get('longitud') or ev.get('lon')
                 
-                # Se invocaran a las funciones que transforman coordenadas geográficas a coordenadas del canvas para cada mapa
-                
-                # para perfil
-                x, y = geographic_to_canvas_perfil(lon_punto, prof_punto, minY, maxY, minX, maxX, nuevo_ancho, nuevo_alto)
-                
-                # Si los datos a plotear no tienen mapa de perfil no plotea datos
-                if perfil_plot[:10] != "sin_perfil":
-                    #print(evento.get('percibido'))
-                    if fuente=="eventquery" and evento.get('percibido')=="S":
-                        color=color2
-                        #print('id ',id,' Percibido')
-                    #else:
-                    #    color=color
-
-                    if (fuente=="todas" or fuente=="outrangos" or fuente=="outrangosfull" or fuente=="outrangosCSN") and evento.get('consulta')=="CSN":
-                        color=color3
-                    #else:
-                    #    color=color
-
-                    if (fuente=="todas" or fuente=="outrangos" or fuente=="outrangosfull" or fuente=="outrangosCSN") and evento.get('consulta')==agenciabase:
-                        color=color4
-
-                    # Dibuja un círculo en el canvas (perfil) en las coordenadas calculadas
-                    canvas.create_oval(x-5, y-5, x+5, y+5, fill=color, outline="black")
-                    # Añade texto al mapa (opcional)
-                    canvas.create_text(x, y - 10, text=id, fill="black")
-                    #canvas.create_text(x, y - 10, text=f"({lat_punto:.2f}, {lon_punto:.2f})", fill="black")
-
-                    color=color1
-                
-                total_eventos=total_eventos+1
-                
-                if fuente=="eventquery" and evento.get('percibido')=="S":
-                    color=color2
-                    percibidos=percibidos+1
-                    #time.sleep(1)
-                    # genera csv con eventos percibidos
-                    evento_procesado = {
-                        'id': id,
-                        'fecha hora': fecha_hora,
-                        'latitud': lat_punto,
-                        'longitud': lon_punto,
-                        'prof': prof_punto,
-                        'magnitud': evento.get('magnitud'),
-                        'tipo': evento.get('tipo'),
-                        #'referencia': evento.get('referencia'),
-                        'percibido': evento.get('percibido'),
+                if id_sismo and lat_val and lon_val:
+                    diccionario_csn[id_sismo] = {
+                        'lat': float(lat_val),
+                        'lon': float(lon_val)
                     }
-                    #print(evento_procesado)
-                    evento_percibido.append(evento_procesado)
 
-                    # Abrir un archivo en modo de escritura ('w')
-                    with open("percibidos.txt", "a") as archivo_perc:
-                        # Concatenar los valores del diccionario con espacios y un salto de línea
-                        linea_a_escribir = str(evento_procesado['id']) + ' ' + \
-                                        str(evento_procesado['fecha hora']) + ' ' + \
-                                        str(evento_procesado['latitud']) + ' ' + \
-                                        str(evento_procesado['longitud']) + ' ' + \
-                                        str(evento_procesado['prof']) + ' ' + \
-                                        str(evento_procesado['magnitud']) + ' ' + \
-                                        str(evento_procesado['tipo']) + ' ' + \
-                                        str(evento_procesado['percibido']) + "\n"
+        # =========================================================================
+        # PASO 2: CONVERSIÓN A DATAFRAME Y AGRUPACIÓN POR SISMO REAL
+        # Esto aísla los eventos para que no se mezclen coordenadas de sismos distintos
+        # =========================================================================
+        df_eventos = pd.DataFrame(eventos)
+        
+        if not df_eventos.empty:
+            # Si no existe la columna 'asociado', respaldamos con el id
+            if 'asociado' not in df_eventos.columns:
+                df_eventos['asociado'] = df_eventos['id']
 
-                        # Escribir la línea en el archivo
-                        archivo_perc.write(linea_a_escribir)
+            # Agrupamos por el identificador del sismo
+            grupos_sismos = df_eventos.groupby('asociado')
 
-                    color=color1
+            for id_sismo, grupo in grupos_sismos:
+                # 🔹 AQUÍ OCURRE LA MAGIA: Inicializamos los sets LIMPIOS para CADA SISMO
+                coordenadas_perfil_usadas = set()
+                coordenadas_planta_usadas = set()
 
-                # para planta
-                x, y = geographic_to_canvas_planta(lat_punto, lon_punto, min_lat, max_lat, min_lon, max_lon, nuevo_ancho, nuevo_alto)
-                
-                if fuente=="eventquery" and evento.get('percibido')=="S":
-                        color=color2
+                for _, evento in grupo.iterrows():
+                    # Definir colores base al plotear
+                    color1 = "yellow"
+                    color2 = "red"
+                    color3 = "blue"
+                    color4 = "green"
+                    color = color1
+                    
+                    id = evento.get('id')
+                    fecha_hora = evento.get('fecha hora') or evento.get('fecha_hora')
+                    lat_punto = float(evento.get('latitud') or evento.get('lat'))
+                    lon_punto = float(evento.get('longitud') or evento.get('lon'))
+                    prof_punto = float(evento.get('prof')) * -1
+                    
+                    # ---------------------------------------------------------------------
+                    # SECCIÓN PERFIL
+                    # ---------------------------------------------------------------------
+                    x, y = geographic_to_canvas_perfil(lon_punto, prof_punto, minY, maxY, minX, maxX, nuevo_ancho, nuevo_alto)
+                    
+                    if perfil_plot[:10] != "sin_perfil":
+                        if fuente == "eventquery" and evento.get('percibido') == "S":
+                            color = color2
+                        if (fuente == "todas" or fuente == "outrangos" or fuente == "outrangosfull" or fuente == "outrangosCSN") and evento.get('consulta') == "CSN":
+                            color = color3
+                        if (fuente == "todas" or fuente == "outrangos" or fuente == "outrangosfull" or fuente == "outrangosCSN") and evento.get('consulta') == agenciabase:
+                            color = color4
 
-                if (fuente=="todas" or fuente=="outrangos" or fuente=="outrangosfull" or fuente=="outrangosCSN") and evento.get('consulta')=="CSN":
-                        color=color3
-                
-                if (fuente=="todas" or fuente=="outrangos" or fuente=="outrangosfull" or fuente=="outrangosCSN") and evento.get('consulta')==agenciabase:
-                        color=color4
+                        # Detección de coincidencia local (Solo afecta a soluciones de ESTE sismo)
+                        coord_actual = (round(x, 1), round(y, 1))
+                        if coord_actual in coordenadas_perfil_usadas:
+                            canvas.create_oval(x-8, y-8, x+8, y+8, outline="magenta", width=2)
+                        else:
+                            coordenadas_perfil_usadas.add(coord_actual)
 
-                # Dibuja un círculo en el canvas en las coordenadas calculadas
-                canvas_planta.create_oval(x-5, y-5, x+5, y+5, fill=color, outline="black")
- 
-                # Añade texto al mapa (opcional)
-                canvas_planta.create_text(x, y - 10, text=id, fill="black")
-                #canvas.create_text(x, y - 10, text=f"({lat_punto:.2f}, {lon_punto:.2f})", fill="black")
+                        canvas.create_oval(x-5, y-5, x+5, y+5, fill=color, outline="black")
+                        canvas.create_text(x, y - 10, text=id, fill="black")
+                        color = color1
+                    
+                    total_eventos = total_eventos + 1
+                    
+                    # Lógica de guardado de percibidos
+                    if fuente == "eventquery" and evento.get('percibido') == "S":
+                        color = color2
+                        percibidos = percibidos + 1
+                        
+                        evento_procesado = {
+                            'id': id, 'fecha hora': fecha_hora, 'latitud': lat_punto,
+                            'longitud': lon_punto, 'prof': prof_punto,
+                            'magnitud': evento.get('magnitud'), 'tipo': evento.get('tipo'),
+                            'percibido': evento.get('percibido'),
+                        }
+                        evento_percibido.append(evento_procesado)
 
-                color=color1
+                        with open("percibidos.txt", "a") as archivo_perc:
+                            linea_a_escribir = f"{evento_procesado['id']} {evento_procesado['fecha hora']} {evento_procesado['latitud']} {evento_procesado['longitud']} {evento_procesado['prof']} {evento_procesado['magnitud']} {evento_procesado['tipo']} {evento_procesado['percibido']}\n"
+                            archivo_perc.write(linea_a_escribir)
 
-            """
-            # dibujar punto volcan
-            if archivo_elegido=="file_b.json":
-                lat_volcan=float("-19.16")
-                lon_volcan=float("-68.82")
-                x, y = geographic_to_canvas_planta(lat_volcan, lon_volcan, min_lat, max_lat, min_lon, max_lon, nuevo_ancho, nuevo_alto) 
-                canvas_planta.create_oval(x-4, y-4, x+4, y+4, fill="blue", outline="black")
-                print("ploteo volcan")
-                print("en latitud ", lat_volcan)
-                print("en longitud ", lon_volcan)
-                #time.sleep(20)
-            """
+                        color = color1
+
+                    # ---------------------------------------------------------------------
+                    # SECCIÓN PLANTA
+                    # ---------------------------------------------------------------------
+                    if lat_punto >= min_lat and lat_punto <= max_lat and lon_punto >= min_lon and lon_punto <= max_lon:
+                        
+                        x_plan, y_plan = geographic_to_canvas_planta(lat_punto, lon_punto, min_lat, max_lat, min_lon, max_lon, nuevo_ancho, nuevo_alto)
+                        
+                        if fuente == "eventquery" and evento.get('percibido') == "S":
+                            color = color2
+                        if (fuente == "todas" or fuente == "outrangos" or fuente == "outrangosfull" or fuente == "outrangosCSN") and evento.get('consulta') == "CSN":
+                            color = color3
+                        if (fuente == "todas" or fuente == "outrangos" or fuente == "outrangosfull" or fuente == "outrangosCSN") and evento.get('consulta') == agenciabase:
+                            color = color4
+
+                        # Dibujar la línea entre la agencia internacional y su CSN correspondiente
+                        id_actual = evento.get('asociado') or evento.get('id')
+                        if evento.get('consulta') != 'CSN' and id_actual in diccionario_csn:
+                            lat_csn_propia = diccionario_csn[id_actual]['lat']
+                            lon_csn_propia = diccionario_csn[id_actual]['lon']
+                            if lat_csn_propia >= min_lat and lat_csn_propia <= max_lat and lon_csn_propia >= min_lon and lon_csn_propia <= max_lon:
+                                x_csn, y_csn = geographic_to_canvas_planta(lat_csn_propia, lon_csn_propia, min_lat, max_lat, min_lon, max_lon, nuevo_ancho, nuevo_alto)
+                                canvas_planta.create_line(x_plan, y_plan, x_csn, y_csn, fill="gray", dash=(4, 4))
+
+                        # Detección de coincidencia local en Planta (Se limpia con cada sismo)
+                        coord_planta_actual = (round(x_plan, 1), round(y_plan, 1))
+                        if coord_planta_actual in coordenadas_planta_usadas:
+                            canvas_planta.create_oval(x_plan-8, y_plan-8, x_plan+8, y_plan+8, outline="magenta", width=2)
+                        else:
+                            coordenadas_planta_usadas.add(coord_planta_actual)
+
+                        # Cambiar la figura si el error es de Magnitud
+                        razon_error = str(evento.get('fuerarangos'))
+                        if "magnitud" in razon_error and evento.get('consulta') != 'CSN':
+                            canvas_planta.create_rectangle(x_plan-5, y_plan-5, x_plan+5, y_plan+5, fill=color, outline="black")
+                        else:
+                            canvas_planta.create_oval(x_plan-5, y_plan-5, x_plan+5, y_plan+5, fill=color, outline="black")
+             
+                        texto_mapa = str(id)
+                        if evento.get('fuerarangos') and pd.notna(evento.get('fuerarangos')):
+                            texto_mapa = str(id) + " (" + str(evento.get('fuerarangos')) + ")"
+                            
+                        canvas_planta.create_text(x_plan, y_plan - 12, text=texto_mapa, fill="black")
+
+                    color = color1
+
+    # =========================================================================
+    # LEYENDAS EXPLICATIVAS (Esquinas Inferiores de Canvas)
+    # =========================================================================
+    fuente_texto = ("Arial", 9, "bold")
+    fuente_titulo = ("Arial", 10, "bold")
+
+    # ---------------------------------------------------------------------
+    # LEYENDA DEL CANVAS DE PERFIL (Esquina Inferior Izquierda: x=10, y=nuevo_alto-130)
+    # ---------------------------------------------------------------------
+    if perfil_plot[:10] != "sin_perfil":
+        # Cuadro contenedor de fondo para legibilidad
+        canvas.create_rectangle(10, nuevo_alto - 130, 260, nuevo_alto - 10, fill="#F0F0F0", outline="black", width=1)
+        canvas.create_text(20, nuevo_alto - 115, text="LEYENDA DE SOLUCIONES", anchor=tk.W, font=fuente_titulo, fill="black")
+        
+        # Muestras de colores (Círculos)
+        # CSN (Azul)
+        canvas.create_oval(20 - 4, (nuevo_alto - 95) - 4, 20 + 4, (nuevo_alto - 95) + 4, fill="blue", outline="black")
+        canvas.create_text(35, nuevo_alto - 95, text="Solución local (CSN)", anchor=tk.W, font=fuente_texto, fill="black")
+        
+        # Agencia Base / Internacional (Verde / Amarillo)
+        canvas.create_oval(20 - 4, (nuevo_alto - 75) - 4, 20 + 4, (nuevo_alto - 75) + 4, fill="green", outline="black")
+        canvas.create_text(35, nuevo_alto - 75, text=f"Solución Base ({agenciabase})", anchor=tk.W, font=fuente_texto, fill="black")
+        
+        # Percibidos (Rojo)
+        canvas.create_oval(20 - 4, (nuevo_alto - 55) - 4, 20 + 4, (nuevo_alto - 55) + 4, fill="red", outline="black")
+        canvas.create_text(35, nuevo_alto - 55, text="Evento Percibido (S)", anchor=tk.W, font=fuente_texto, fill="black")
+
+        # Aro Magenta de Superposición
+        canvas.create_oval(20 - 6, (nuevo_alto - 30) - 6, 20 + 6, (nuevo_alto - 30) + 6, outline="magenta", width=2)
+        canvas.create_oval(20 - 3, (nuevo_alto - 30) - 3, 20 + 3, (nuevo_alto - 30) + 3, fill="yellow", outline="black")
+        canvas.create_text(35, nuevo_alto - 30, text="Soluciones Superpuestas", anchor=tk.W, font=fuente_texto, fill="magenta")
+
+    # =========================================================================
+    # LEYENDAS EXPLICATIVAS UNIFICADAS Y SIMÉTRICAS
+    # =========================================================================
+    fuente_texto = ("Arial", 9, "bold")
+    fuente_titulo = ("Arial", 10, "bold")
+
+    # Dimensiones y coordenadas base para homogeneizar las cajas
+    ancho_caja = 250
+    alto_caja = 130
+
+    # =========================================================================
+    # LEYENDAS EXPLICATIVAS UNIFICADAS Y SIMÉTRICAS (Coordenadas Relativas)
+    # =========================================================================
+    fuente_texto = ("Arial", 9, "bold")
+    fuente_titulo = ("Arial", 10, "bold")
+
+    # Dimensiones fijas de las cajas de leyenda
+    ancho_caja = 250
+    alto_caja = 130
+
+    # Margen interno para el espaciado vertical de los elementos
+    espacio_items = 20
+
+    # ---------------------------------------------------------------------
+    # LEYENDA: CANVAS DE PERFIL (Esquina Inferior Izquierda)
+    # ---------------------------------------------------------------------
+    if perfil_plot[:10] != "sin_perfil":
+        x_perfil_origen = 10
+        y_perfil_origen = nuevo_alto - (alto_caja + 10)
+        
+        # Contenedor base
+        canvas.create_rectangle(x_perfil_origen, y_perfil_origen, x_perfil_origen + ancho_caja, nuevo_alto - 10, fill="#F0F0F0", outline="black", width=1)
+        canvas.create_text(x_perfil_origen + 10, y_perfil_origen + 15, text="LEYENDA DE SOLUCIONES", anchor=tk.W, font=fuente_titulo, fill="black")
+        
+        # Símbolo 1: CSN (Azul)
+        y_item = y_perfil_origen + 40
+        canvas.create_oval(x_perfil_origen + 15 - 4, y_item - 4, x_perfil_origen + 15 + 4, y_item + 4, fill="blue", outline="black")
+        canvas.create_text(x_perfil_origen + 30, y_item, text="Solución CSN", anchor=tk.W, font=fuente_texto, fill="black")
+        
+        # Símbolo 2: Agencia Base (Verde)
+        y_item += espacio_items
+        canvas.create_oval(x_perfil_origen + 15 - 4, y_item - 4, x_perfil_origen + 15 + 4, y_item + 4, fill="green", outline="black")
+        canvas.create_text(x_perfil_origen + 30, y_item, text=f"Agencia Base ({agenciabase})", anchor=tk.W, font=fuente_texto, fill="black")
+        
+        # Símbolo 3: Evento Percibido (Rojo)
+        y_item += espacio_items
+        canvas.create_oval(x_perfil_origen + 15 - 4, y_item - 4, x_perfil_origen + 15 + 4, y_item + 4, fill="red", outline="black")
+        canvas.create_text(x_perfil_origen + 30, y_item, text="Evento Percibido", anchor=tk.W, font=fuente_texto, fill="black")
+
+        # Símbolo 4: Soluciones Superpuestas (Aro Magenta + Centro Agencia)
+        y_item += espacio_items
+        canvas.create_oval(x_perfil_origen + 15 - 7, y_item - 7, x_perfil_origen + 15 + 7, y_item + 7, outline="magenta", width=2)
+        canvas.create_oval(x_perfil_origen + 15 - 4, y_item - 4, x_perfil_origen + 15 + 4, y_item + 4, fill="green", outline="black")
+        canvas.create_text(x_perfil_origen + 30, y_item, text="Soluciones Superpuestas", anchor=tk.W, font=fuente_texto, fill="magenta")
+
+    # ---------------------------------------------------------------------
+    # LEYENDA: CANVAS DE PLANTA (Esquina Inferior Derecha)
+    # ---------------------------------------------------------------------
+    x_planta_origen = nuevo_ancho - (ancho_caja + 10)
+    y_planta_origen = nuevo_alto - (alto_caja + 10)
+    
+    # Contenedor base idéntico
+    canvas_planta.create_rectangle(x_planta_origen, y_planta_origen, nuevo_ancho - 10, nuevo_alto - 10, fill="#F0F0F0", outline="black", width=1)
+    canvas_planta.create_text(x_planta_origen + 10, y_planta_origen + 15, text="LEYENDA DE SOLUCIONES", anchor=tk.W, font=fuente_titulo, fill="black")
+    
+    # Símbolo 1: CSN (Azul)
+    y_item = y_planta_origen + 40
+    canvas_planta.create_oval(x_planta_origen + 15 - 4, y_item - 4, x_planta_origen + 15 + 4, y_item + 4, fill="blue", outline="black")
+    canvas_planta.create_text(x_planta_origen + 30, y_item, text="Solución CSN", anchor=tk.W, font=fuente_texto, fill="black")
+    
+    # Símbolo 2: Agencia Base (Verde)
+    y_item += espacio_items
+    canvas_planta.create_oval(x_planta_origen + 15 - 4, y_item - 4, x_planta_origen + 15 + 4, y_item + 4, fill="green", outline="black")
+    canvas_planta.create_text(x_planta_origen + 30, y_item, text=f"Agencia Base ({agenciabase})", anchor=tk.W, font=fuente_texto, fill="black")
+
+    # Símbolo 3: Evento Percibido (Rojo)
+    y_item += espacio_items
+    canvas_planta.create_oval(x_planta_origen + 15 - 4, y_item - 4, x_planta_origen + 15 + 4, y_item + 4, fill="red", outline="black")
+    canvas_planta.create_text(x_planta_origen + 30, y_item, text="Evento Percibido", anchor=tk.W, font=fuente_texto, fill="black")
+
+    # Símbolo 4: Soluciones Superpuestas (Aro Magenta + Centro Agencia)
+    y_item += espacio_items
+    canvas_planta.create_oval(x_planta_origen + 15 - 7, y_item - 7, x_planta_origen + 15 + 7, y_item + 7, outline="magenta", width=2)
+    canvas_planta.create_oval(x_planta_origen + 15 - 4, y_item - 4, x_planta_origen + 15 + 4, y_item + 4, fill="green", outline="black")
+    canvas_planta.create_text(x_planta_origen + 30, y_item, text="Soluciones Superpuestas", anchor=tk.W, font=fuente_texto, fill="magenta")
 
     return canvas, canvas_planta, percibidos, total_eventos
+
 
 def guarda_canvas_png(canvas, nombre_archivo_imagen):
     """
@@ -647,6 +778,21 @@ planta_elegido=plotear[archivo]["planta"]
 archivo_elegido=archivo
 
 try:
+    # Mapas perfiles (ruta al mapa del perfil a utilizar usando os.path.join)
+    imagen_perfil_path = os.path.join(path_perfil, "sin_margen", perfil_elegido)
+    
+    # Mapas planta (ruta al mapa de planta a utilizar)
+    imagen_planta_path = os.path.join(path_planta, planta_elegido)
+
+except FileNotFoundError:
+    print("Error: No se encontró la imagen.")
+    exit()
+except Exception as e:
+    print(f"Error al cargar la imagen: {e}")
+    exit()
+
+"""
+try:
     
     # Mapas perfiles (ruta al mapa del perfil a utilizar)
     imagen_perfil_path = path_perfil+"/sin_margen/"+perfil_elegido # ruta a la imagen
@@ -660,6 +806,7 @@ except FileNotFoundError:
 except Exception as e:
     print(f"Error al cargar la imagen: {e}")
     exit()
+"""
 
 # Redimensionar la imagen y obtener la versión compatible con Tkinter
 imagen_tk = redimensionar_imagen(imagen_perfil_path, nuevo_ancho, nuevo_alto)

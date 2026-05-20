@@ -6,8 +6,6 @@ import time
 import shutil
 import datetime
 from datetime import timedelta
-#from num2words import num2words
-#listaoutrangofull.csv
 
 def rellena(archivo, csvreader, listacsv, diccsv, agencia):
     print('entro')
@@ -15,25 +13,12 @@ def rellena(archivo, csvreader, listacsv, diccsv, agencia):
 
     for linea in csvreader:
 
-        print('linea origen', file=sys.stderr)
-        print(linea,'\n', file=sys.stderr)
+        #print('linea origen', file=sys.stderr)
+        #print(linea,'\n', file=sys.stderr)
 
         cambios='n'
         cambioslat='n'
         cambioslon='n'
-
-        """
-        if linea[1]=='2026-02-28 20:21:50':
-        #if agencia =='CSN':
-            print('***************************', file=sys.stderr)
-            print(linea, file=sys.stderr)
-            print(linea[2], file=sys.stderr)
-            print('largo:', len(linea[2]), file=sys.stderr)
-            print(linea[3], file=sys.stderr)
-            print('largo:', len(linea[3]), file=sys.stderr)
-            sys.stderr.flush()
-            time.sleep(60)
-        """
 
         # Completa con ceros la latitud
         if len(linea[2])<=6:
@@ -216,15 +201,15 @@ def rellena(archivo, csvreader, listacsv, diccsv, agencia):
                     #"fuerarangos":linea[11],
                 }
         
-        print('lat:',linea[2],'\n', file=sys.stderr)
-        print('lon:',linea[3],'\n', file=sys.stderr)
-        print(diccsv,'\n', file=sys.stderr)
-        print(cambios,'/',cambioslat,'/', cambioslon,'\n', file=sys.stderr)
+        #print('lat:',linea[2],'\n', file=sys.stderr)
+        #print('lon:',linea[3],'\n', file=sys.stderr)
+        #print(diccsv,'\n', file=sys.stderr)
+        #print(cambios,'/',cambioslat,'/', cambioslon,'\n', file=sys.stderr)
         listacsv.append(diccsv)
         
         sys.stderr.flush()
     
-    print ('*** nueva lista ***', agencia, file=sys.stderr)
+    #print ('*** nueva lista ***', agencia, file=sys.stderr)
     for sismo in listacsv:
         #print (sismo, file=sys.stderr)
         numsis_csv+=1
@@ -257,7 +242,7 @@ def revisando(agencias, agencia, elemento, listafinal, listaoutrango):
     # revisando datos extraidos del EMSC que seran comparados con los los eventos de las demas agencias
     avance=0
     for sismo2 in agencias[claveagenciabase]["lista"]: # agencia base (la que tiene mas soluciones en el cuadrante de la consulta)
-        print(sismo2, file=sys.stderr)
+        #print(sismo2, file=sys.stderr)
         #time.sleep(10)
         rep_datosapi_csn=0
         delta_dia=0
@@ -271,7 +256,7 @@ def revisando(agencias, agencia, elemento, listafinal, listaoutrango):
         #porcenprof2=(50*prof2)/100
         
         for sismo1 in agencias[claveagencia2]["lista"]:
-            print(sismo1, file=sys.stderr)
+            #print(sismo1, file=sys.stderr)
             #time.sleep(10)
             hora_1=sismo1['fecha_hora']
             hora_1=datetime.datetime.strptime(hora_1, '%Y-%m-%d  %H:%M:%S')
@@ -542,8 +527,8 @@ next(csvreader_3, None)
 next(csvreader_4, None)
 
 numsis_csv_1, listacsv_1, diccsv_1 = rellena(nombres_filtrados[0], csvreader_1, listacsv_1, diccsv_1, nombres_filtrados[0][12:nombres_filtrados[0].find('.')])
-print(f"Archivo: {nombres_filtrados[0]} | Eventos: {numsis_csv_1}", file=sys.stderr)
-print(nombres_filtrados[0][12:nombres_filtrados[0].find('.')], file=sys.stderr)
+#print(f"Archivo: {nombres_filtrados[0]} | Eventos: {numsis_csv_1}", file=sys.stderr)
+#print(nombres_filtrados[0][12:nombres_filtrados[0].find('.')], file=sys.stderr)
 #for evento in listacsv_1:
 #    print(evento, file=sys.stderr)
 #time.sleep(30)
@@ -564,8 +549,8 @@ df_temp_1.to_csv(nombre_salida, index=False, encoding='utf-8')
 #print(f"Archivo guardado exitosamente: {nombre_salida}", file=sys.stderr)
 
 numsis_csv_2, listacsv_2, diccsv_2 = rellena(nombres_filtrados[1], csvreader_2, listacsv_2, diccsv_2, nombres_filtrados[1][12:nombres_filtrados[1].find('.')])
-print(f"Archivo: {nombres_filtrados[1]} | Eventos: {numsis_csv_2}", file=sys.stderr)
-print(nombres_filtrados[0][12:nombres_filtrados[0].find('.')], file=sys.stderr)
+#print(f"Archivo: {nombres_filtrados[1]} | Eventos: {numsis_csv_2}", file=sys.stderr)
+#print(nombres_filtrados[0][12:nombres_filtrados[0].find('.')], file=sys.stderr)
 #for evento in listacsv_2:
 #    print(evento, file=sys.stderr)
 #time.sleep(30)
@@ -586,8 +571,8 @@ df_temp_2.to_csv(nombre_salida, index=False, encoding='utf-8')
 #print(f"Archivo guardado exitosamente: {nombre_salida}", file=sys.stderr)
 
 numsis_csv_3, listacsv_3, diccsv_3 = rellena(nombres_filtrados[2], csvreader_3, listacsv_3, diccsv_3, nombres_filtrados[2][12:nombres_filtrados[2].find('.')])
-print(f"Archivo: {nombres_filtrados[2]} | Eventos: {numsis_csv_3}", file=sys.stderr)
-print(nombres_filtrados[0][12:nombres_filtrados[0].find('.')], file=sys.stderr)
+#print(f"Archivo: {nombres_filtrados[2]} | Eventos: {numsis_csv_3}", file=sys.stderr)
+#print(nombres_filtrados[0][12:nombres_filtrados[0].find('.')], file=sys.stderr)
 #for evento in listacsv_3:
 #    print(evento, file=sys.stderr)
 #time.sleep(30)
@@ -608,8 +593,8 @@ df_temp_3.to_csv(nombre_salida, index=False, encoding='utf-8')
 #print(f"Archivo guardado exitosamente: {nombre_salida}", file=sys.stderr)
 
 numsis_csv_4, listacsv_4, diccsv_4 = rellena(nombres_filtrados[3], csvreader_4, listacsv_4, diccsv_4, nombres_filtrados[3][12:nombres_filtrados[3].find('.')])
-print(f"Archivo: {nombres_filtrados[3]} | Eventos: {numsis_csv_4}", file=sys.stderr)
-print(nombres_filtrados[0][12:nombres_filtrados[0].find('.')], file=sys.stderr)
+#print(f"Archivo: {nombres_filtrados[3]} | Eventos: {numsis_csv_4}", file=sys.stderr)
+#print(nombres_filtrados[0][12:nombres_filtrados[0].find('.')], file=sys.stderr)
 #for evento in listacsv_4:
 #    print(evento, file=sys.stderr)
 #time.sleep(30)
@@ -681,7 +666,7 @@ listaoutrangofull=[]
 for elemento in nuevalista:
     nombre_agencia = elemento[12:elemento.find('.')]
     # Enviamos a stderr para que aparezca en pantalla inmediatamente y no ensucie la variable de Bash
-    print(f"\nProcesando: {nombre_agencia} ✅", file=sys.stderr, end='')
+    print(f"\nProcesando: {nombre_agencia} ✅\n", file=sys.stderr, end='')
     revisando(agencias, agencia, nombre_agencia, listafinal, listaoutrango)
 
 
@@ -816,41 +801,250 @@ for _, row_out in df_out_rango.iterrows():
                 "fuerarangos": valor_fuerarango
             }
             registros_cercanos_lista.append(asociacion)
-
-if registros_cercanos_lista:
-    # Crea DataFrame inicial
-    df_previo = pd.DataFrame(registros_cercanos_lista)
-    salida_cercanos = 'listaoutrangofull.csv'
     
-    # Guarda temporalmente para que 'rellena' pueda leerlo como CSV
-    df_previo.to_csv(salida_cercanos, index=False)
-
-    # Re-procesar con la función 'rellena' para formatear decimales
-    with open(salida_cercanos, 'r') as csv_file_outrange:
-        csvreader_outrange = csv.reader(csv_file_outrange)
-        next(csvreader_outrange, None) # Saltar cabecera
+    if registros_cercanos_lista:
+        # 1. Crea el DataFrame con los eventos internacionales que fallaron
+        df_previo = pd.DataFrame(registros_cercanos_lista)
+        salida_cercanos = 'listaoutrangofull.csv'
         
-        lista_out_formateada = []
-        dic_out = {}
-        # Llama a rellena con el modo 'listaoutrangofull' que ya definiste en tu función
-        _, lista_out_formateada, _ = rellena(salida_cercanos, csvreader_outrange, lista_out_formateada, dic_out, 'listaoutrangofull')
+        # Identificamos el nombre de la columna de tiempo en tu lista de errores
+        col_tiempo_error = 'fecha_hora'
+        if 'fecha hora' in df_previo.columns:
+            col_tiempo_error = 'fecha hora'
+        elif 'Fecha_Hora' in df_previo.columns:
+            col_tiempo_error = 'Fecha_Hora'
 
-    # Guarda el resultado final con el formato de ceros
-    df_out_final = pd.DataFrame(lista_out_formateada)
-    
-    # Asegura el orden de columnas para el CSV final
-    columnas_finales = [
-        'fecha_hora', 'lat', 'lon', 'prof', 'mag', 
-        'tipo_mag', 'ref', 'agencia', 'consulta', 'asociado', 'fuerarangos'
-    ]
-    
-    # Reordena solo si las columnas existen
-    df_out_final = df_out_final[columnas_finales]
-    df_out_final.to_csv(salida_cercanos, index=True, encoding='utf-8')
-    
-    print(f"\n✅ Archivo {salida_cercanos} generado con éxito.", file=sys.stderr)
-else:
-    print("No se encontraron asociaciones.", file=sys.stderr)
+        # Guardamos los errores convirtiendo el texto a formato datetime real
+        lista_errores_datetime = []
+        for indice, fila in df_previo.iterrows():
+            texto_tiempo = str(fila[col_tiempo_error]).strip()
+            try:
+                objeto_tiempo = datetime.datetime.strptime(texto_tiempo, "%Y-%m-%d %H:%M:%S")
+                lista_errores_datetime.append({
+                    'tiempo_obj': objeto_tiempo,
+                    'fuerarangos': str(fila.get('fuerarangos', ''))
+                })
+            except:
+                pass 
+
+        # 2. RECORREMOS EL UNIVERSO (listaapifinal.csv) CON FILTROS DE VENTANA
+        lista_salida_agrupada = []
+        
+        if os.path.exists('listaapifinal.csv'):
+            df_universo = pd.read_csv('listaapifinal.csv')
+            
+            # Identificamos la columna de tiempo en el archivo masivo
+            col_tiempo_univ = 'Fecha_Hora'
+            if 'fecha hora' in df_universo.columns:
+                col_tiempo_univ = 'fecha hora'
+            elif 'fecha_hora' in df_universo.columns:
+                col_tiempo_univ = 'fecha_hora'
+
+            id_asociado_actual = 1
+            tiempos_ya_asignados = {} 
+
+            # Definimos tu ventana de tolerancia (120 segundos)
+            ventana_tolerancia = 120 
+
+            # Bucle tradicional fila por fila para revisar el universo entero
+            for indice, fila in df_universo.iterrows():
+                texto_tiempo_univ = str(fila[col_tiempo_univ]).strip()
+                
+                try:
+                    tiempo_univ_obj = datetime.datetime.strptime(texto_tiempo_univ, "%Y-%m-%d %H:%M:%S")
+                except:
+                    continue 
+
+                # Cruzamos el sismo actual del universo contra toda nuestra lista de errores conocidos
+                for error in lista_errores_datetime:
+                    diferencia = abs((tiempo_univ_obj - error['tiempo_obj']).total_seconds())
+                    
+                    # ¡SI ESTÁ DENTRO DE LA VENTANA DE SEGUNDOS, ES EL MISMO SISMO!
+                    if diferencia <= ventana_tolerancia:
+                        
+                        clave_familia = error['tiempo_obj']
+                        
+                        if clave_familia not in tiempos_ya_asignados:
+                            tiempos_ya_asignados[clave_familia] = id_asociado_actual
+                            id_asociado_actual = id_asociado_actual + 1
+                        
+                        codigo_asociado = tiempos_ya_asignados[clave_familia]
+                        
+                        # Construimos la fila con las cabeceras exactas en Mayúsculas que espera 'rellena'
+                        nuevo_registro = {
+                            'Fecha_Hora': texto_tiempo_univ,
+                            'Latitud': fila.get('Latitud') or fila.get('lat'),
+                            'Longitud': fila.get('Longitud') or fila.get('lon'),
+                            'Prof.': fila.get('Prof.') or fila.get('prof'),
+                            'Mag.': fila.get('Mag.') or fila.get('mag'),
+                            'Tipo Mag.': fila.get('Tipo Mag.') or fila.get('tipo_mag') or fila.get('tipo'),
+                            'Referencia': fila.get('Referencia') or fila.get('ref'),
+                            'Agencia': fila.get('Agencia') or fila.get('agencia'),
+                            'Consulta': fila.get('Consulta') or fila.get('consulta'),
+                            'asociado': codigo_asociado,
+                            'fuerarangos': error['fuerarangos']
+                        }
+                        lista_salida_agrupada.append(nuevo_registro)
+                        break 
+
+            df_out_final = pd.DataFrame(lista_salida_agrupada)
+        else:
+            df_out_final = df_previo
+
+        print('df_out_final', file=sys.stderr)
+        print(df_out_final, file=sys.stderr)
+
+        # 3. CONSTRUCCIÓN DE LA ESTRUCTURA NATIVA REAL SEGÚN TUS ÍNDICES FÍSICOS
+        if not df_out_final.empty:
+            # Cabecera física balanceada para el procesamiento secuencial de tu función
+            cabecera_nativa = ['asociado', 'Fecha_Hora', 'Latitud', 'Longitud', 'Prof.', 'Mag.', 'Tipo Mag.', 'Referencia', 'Agencia', 'Consulta', 'fuerarangos']
+            
+            filas_para_archivo = []
+            filas_para_archivo.append(cabecera_nativa)
+
+            # Recorremos el DataFrame original para poblar el archivo temporal
+            for indice, fila in df_out_final.iterrows():
+                # Intentamos capturar el ID o correlativo de sismo si ya existe en las agrupaciones
+                v_asoc = str(fila.get('asociado') or fila.get('id') or indice)
+                v_fecha = str(fila.get('Fecha_Hora') or fila.get('fecha hora') or '').strip()
+                v_lat = str(fila.get('Latitud') or fila.get('latitud') or '')
+                v_lon = str(fila.get('Longitud') or fila.get('longitud') or '')
+                v_prof = str(fila.get('Prof.') or fila.get('prof') or '')
+                v_mag = str(fila.get('Mag.') or fila.get('magnitud') or '')
+                v_tipo = str(fila.get('Tipo Mag.') or fila.get('tipo') or '')
+                v_ref = str(fila.get('Referencia') or fila.get('ref') or '')
+                v_agencia = str(fila.get('Agencia') or fila.get('agencia') or '')
+                v_consulta = str(fila.get('Consulta') or fila.get('consulta') or '')
+                v_fuerarango = str(fila.get('fuerarangos') or fila.get('paramout') or '').strip()
+
+                # Estructuramos la lista EXACTA: el ID va en la posición 0 y empuja la fecha a la posición 1
+                nueva_linea = [
+                    v_asoc,         # linea[0] -> Correlativo de sismo asociado
+                    v_fecha,        # linea[1] -> Fecha_Hora
+                    v_lat,          # linea[2] -> Latitud
+                    v_lon,          # linea[3] -> Longitud
+                    v_prof,         # linea[4] -> Prof. (¡Aquí float() leerá la profundidad perfecto!)
+                    v_mag,          # linea[5] -> Mag.
+                    v_tipo,         # linea[6] -> Tipo Mag.
+                    v_ref,          # linea[7] -> Referencia
+                    v_agencia,      # linea[8] -> Agencia
+                    v_consulta,     # linea[9] -> Consulta
+                    v_fuerarango    # linea[10] -> Archivo / fuerarangos
+                ]
+                filas_para_archivo.append(nueva_linea)
+
+            # Escribimos el archivo temporal en disco de forma nativa
+            with open(salida_cercanos, 'w', newline='', encoding='utf-8') as f_temp:
+                writer = csv.writer(f_temp)
+                writer.writerows(filas_para_archivo)
+
+            # 4. PROCESAMIENTO NATIVO CON TU FUNCIÓN RELLENA
+            with open(salida_cercanos, 'r') as csv_file_outrange:
+                csvreader_outrange = csv.reader(csv_file_outrange)
+                next(csvreader_outrange, None) # Saltar cabecera
+                
+                lista_out_formateada = []
+                dic_out = {}
+                # Rellena procesará los casilleros en sus posiciones correctas sin desfases
+                _, lista_out_formateada, _ = rellena(salida_cercanos, csvreader_outrange, lista_out_formateada, dic_out, 'listaoutrangofull')
+
+            # 5. RETORNO DE FORMULACIÓN ADAPTATIVA (NO INVASIVA PARA GENERAJSONAPI.PY)
+            lista_final_ploteo = []
+            registros_originales = df_out_final.to_dict(orient='records')
+            
+            for idx, fila_orig in enumerate(registros_originales):
+                reg_proc = None
+                if lista_out_formateada and idx < len(lista_out_formateada):
+                    reg_proc = lista_out_formateada[idx]
+
+                # --- RESCATE DE FECHA_HORA ---
+                f_fecha = ""
+                if reg_proc:
+                    f_fecha = str(reg_proc.get('Fecha_Hora') or reg_proc.get('fecha_hora') or reg_proc.get('fecha hora') or '').strip()
+                if not f_fecha:
+                    f_fecha = str(fila_orig.get('Fecha_Hora') or fila_orig.get('fecha hora') or '').strip()
+
+                # --- RESCATE DE COORDENADAS Y FORMATEO ---
+                if reg_proc and (reg_proc.get('Latitud') or reg_proc.get('lat')):
+                    f_lat = reg_proc.get('Latitud') or reg_proc.get('lat')
+                    f_lon = reg_proc.get('Longitud') or reg_proc.get('lon')
+                    f_prof = reg_proc.get('Prof.') or reg_proc.get('prof')
+                    f_mag = reg_proc.get('Mag.') or reg_proc.get('mag')
+                else:
+                    f_lat = str(fila_orig.get('Latitud') or fila_orig.get('latitud') or '')
+                    f_lon = str(fila_orig.get('Longitud') or fila_orig.get('longitud') or '')
+                    try:
+                        f_prof = f"{float(fila_orig.get('Prof.') or fila_orig.get('prof')):.1f}"
+                        f_mag = f"{float(fila_orig.get('Mag.') or fila_orig.get('magnitud')):.1f}"
+                    except:
+                        f_prof = str(fila_orig.get('Prof.') or fila_orig.get('prof'))
+                        f_mag = str(fila_orig.get('Mag.') or fila_orig.get('magnitud'))
+
+                # --- PARAMOUT / FUERARANGOS ---
+                f_fuerarangos = ""
+                if reg_proc:
+                    f_fuerarangos = str(reg_proc.get('fuerarangos') or reg_proc.get('paramout') or '').strip()
+                if not f_fuerarangos:
+                    f_fuerarangos = str(fila_orig.get('fuerarangos') or fila_orig.get('paramout') or '').strip()
+
+                # --- CORRELATIVO ASOCIADO ---
+                f_asoc = str(fila_orig.get('asociado') or fila_orig.get('id') or idx)
+
+                # Construimos el diccionario temporal con las llaves que nos servirán para reordenar
+                fila_mapa = {
+                    'id_indice': str(idx),
+                    'Fecha_Hora': f_fecha,
+                    'Latitud': f_lat,
+                    'Longitud': f_lon,
+                    'Prof.': f_prof,
+                    'Mag.': f_mag,
+                    'Tipo Mag.': str(fila_orig.get('Tipo Mag.') or fila_orig.get('tipo') or ''),
+                    'Referencia': str(fila_orig.get('Referencia') or fila_orig.get('ref') or ''),
+                    'Agencia': str(fila_orig.get('Agencia') or fila_orig.get('agencia') or ''),
+                    'Consulta': str(fila_orig.get('Consulta') or fila_orig.get('consulta') or ''),
+                    'asociado': f_asoc,
+                    'fuerarangos': f_fuerarangos
+                }
+                lista_final_ploteo.append(fila_mapa)
+
+            # Convertimos en el DataFrame intermedio
+            df_out_final = pd.DataFrame(lista_final_ploteo)
+            
+            # Estructuramos el orden estricto de 12 columnas que requiere generajsonapi.py
+            # fila[0]=id_indice, fila[1]=Fecha_Hora, fila[2]=Latitud, fila[3]=Longitud ... fila[11]=fuerarangos
+            columnas_compatibilidad = [
+                'id_indice', 'Fecha_Hora', 'Latitud', 'Longitud', 'Prof.', 
+                'Mag.', 'Tipo Mag.', 'Referencia', 'Agencia', 'Consulta', 
+                'asociado', 'fuerarangos'
+            ]
+            
+            df_out_final = df_out_final.reindex(columns=columnas_compatibilidad)
+            df_out_final = df_out_final.drop_duplicates()
+            
+            # Guardamos a disco usando index=False para que la columna 'id_indice' actúe como la columna 0,
+            # dejando a la Fecha_Hora en la columna 1 (fila[1]), Latitud en la 2 (fila[2]), etc.
+            df_out_final.to_csv(salida_cercanos, index=False, encoding='utf-8')
+            print(f"\n✅ Archivo {salida_cercanos} exportado con éxito en formato nativo de 12 columnas.", file=sys.stderr)
+        else:
+            print("No se encontraron sismos en el universo que cayeran en las ventanas.", file=sys.stderr)
+    else:
+        print("No se encontraron asociaciones.", file=sys.stderr)
+
+"""
+# Guarda el resultado final con el formato de ceros
+df_out_final = pd.DataFrame(lista_out_formateada)
+
+# Asegura el orden de columnas para el CSV final
+columnas_finales = [
+    'fecha_hora', 'lat', 'lon', 'prof', 'mag', 
+    'tipo_mag', 'ref', 'agencia', 'consulta', 'asociado', 'fuerarangos'
+]
+
+# Reordena solo si las columnas existen
+df_out_final = df_out_final[columnas_finales]
+df_out_final.to_csv(salida_cercanos, index=True, encoding='utf-8')
+print(f"\n✅ Archivo {salida_cercanos} generado con éxito.", file=sys.stderr)
+"""
 
 #print("\n✅Finalizado")
 
