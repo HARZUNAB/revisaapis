@@ -14,12 +14,16 @@ python3 $SCRIPTS/$PROYECTO/proc_query_harz_2.py $archivo1 $archivo1dat
 # copia archivo csv del eventquery oredenado con un nombre similar a las otras consultas
 #cp new_2_$archivo1 consultaapi_CSN.csv
 #python3 /home/hriquelmez/Revision_Local/repetidosapi.py new_2_$archivo1
+
+agenciabase=$(python3 $SCRIPTS/$PROYECTO/revisaapi.py "new_2_$archivo1")
+agenciabase=$(echo "$agenciabase" | xargs)
+
 echo -e "\n¿Que datos desea procesar para plotear?"
 echo -e "1-Datos eventquery"
 echo -e "2-Datos consultaapi EMSC"
 echo -e "3-Datos consulta USGS"
 echo -e "4-Datos consultaapi GFZ"
-echo -e "5-Fuera de rango"
+echo -e "5-Fuera de rango CSN"
 echo -e "6-Fuera de rango (todos)"
 echo -e "7-Todos"
 echo -e "8-Salir"
@@ -72,9 +76,10 @@ do
         then
             echo -e "\n***** Procesando datos extraidos que estan fuera de rangos definidos *****"
             #python3 /home/hriquelmez/Revision_Local/proc_query_harz_2.py $1 $2
-            fuente="outrangos"
+            fuente="outrangosCSN"
             #python3 /home/hriquelmez/Revision_Local/generajsonapi.py listaoutrango.csv $fuente
             python3 $SCRIPTS/$PROYECTO/generajsonapi.py listaoutrango.csv $fuente
+            #python3 $SCRIPTS/$PROYECTO/generajsonapi.py listaoutrangofull.csv $fuente
             break
         fi
         if [ $respuesta = "6" ]

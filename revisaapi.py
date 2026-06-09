@@ -8,7 +8,7 @@ import datetime
 from datetime import timedelta
 
 def rellena(archivo, csvreader, listacsv, diccsv, agencia):
-    print('entro')
+    #print('entro')
     numsis_csv=0
 
     for linea in csvreader:
@@ -147,6 +147,7 @@ def rellena(archivo, csvreader, listacsv, diccsv, agencia):
                             #"fuerarangos":linea[11],
                         }
                 else:
+                    #print(linea)
                     if agencia!='listaoutrangofull':
                         diccsv={
                             "fecha_hora":linea[1],
@@ -213,16 +214,18 @@ def rellena(archivo, csvreader, listacsv, diccsv, agencia):
     for sismo in listacsv:
         #print (sismo, file=sys.stderr)
         numsis_csv+=1
-
+    
+    """
     if agencia=='CSN':
         print('total eventos', archivo, numsis_csv, "( fuente datos consulta eventquery )", file=sys.stderr)
     else:
         print('total eventos', archivo, numsis_csv, "( fuente datos consultaapi", agencia,")", file=sys.stderr)
+    """
 
     #time.sleep(30)
     return(numsis_csv, listacsv, diccsv)        
 
-def revisando(agencias, agencia, elemento, listafinal, listaoutrango):
+def revisando(agencias, agencia_base, elemento, listafinal, listaoutrango):
     fila_procesada={}
     rep_datosapi_csn=0
     rep_datosapi_csn_total=0
@@ -234,7 +237,7 @@ def revisando(agencias, agencia, elemento, listafinal, listaoutrango):
         if info["nombre"] == elemento:
             claveagencia2 = clave
 
-        if info["nombre"] == agencia:
+        if info["nombre"] == agencia_base:
             claveagenciabase = clave
 
     #time.sleep(20)
@@ -345,22 +348,24 @@ def revisando(agencias, agencia, elemento, listafinal, listaoutrango):
                     parametros=''
                     fuerarango=''
                     
-                    if (deltasegundos1 >= 3 and deltasegundos2 <= 3):
-                        parametros=parametros+'time-'
-                        fuerarango='s'
+                    # no pone parámetros fuera de rango a la agencia considerada base en la comparación
+                    if agencia_base != sismo1['agencia']:
+                        if (deltasegundos1 >= 3 and deltasegundos2 <= 3):
+                            parametros=parametros+'time-'
+                            fuerarango='s'
 
-                    if not (delta_lat >= 0 and delta_lat <= 0.250):
-                        parametros=parametros+'lat-'
-                        fuerarango='s'
-                    
-                    if not (delta_lon >= 0 and delta_lon <= 0.250):
-                        parametros=parametros+'lon-'
-                        fuerarango='s'
+                        if not (delta_lat >= 0 and delta_lat <= 0.250):
+                            parametros=parametros+'lat-'
+                            fuerarango='s'
+                        
+                        if not (delta_lon >= 0 and delta_lon <= 0.250):
+                            parametros=parametros+'lon-'
+                            fuerarango='s'
 
-                    if not valordifmag <= 0.2:
-                        parametros=parametros+'mag-'
-                    
-                    parametros=parametros[0:-1]
+                        if not valordifmag <= 0.2:
+                            parametros=parametros+'mag-'
+                        
+                        parametros=parametros[0:-1]
                     
                     """
                     if  len(parametros)!=0:
@@ -386,11 +391,12 @@ def revisando(agencias, agencia, elemento, listafinal, listaoutrango):
                             'consulta': elemento,
                             'paramout': parametros # guarda la variable dentro del diccionario que se almacenara finalmente en el csv de salida
                         }
-                        print('delta_lat', delta_lat, file=sys.stderr)
-                        print('delta_lon', delta_lon, file=sys.stderr)
-                        print('valordifmag', valordifmag, file=sys.stderr)
+                        print('evento', sismo1['fecha_hora'], file=sys.stderr)
+                        #print('delta_lat', delta_lat, file=sys.stderr)
+                        #print('delta_lon', delta_lon, file=sys.stderr)
+                        #print('valordifmag', valordifmag, file=sys.stderr)
                         print('parametros', parametros, file=sys.stderr)
-                        time.sleep(10)
+                        #time.sleep(1)
                         listaoutrango.append(fila_procesada_out)
 
         rep_datosapi_csn=0
@@ -435,6 +441,7 @@ df_final_csn = df_csn.sort_values(by='Fecha_Hora', ascending=True)
 df_final_csn.reset_index(drop=True, inplace=True) # reseteo el indice luego de ordenar el dataframe por Fecha_Hora
 
 salida='consultaapi_CSN.csv'
+df_csn.index.name = 'idID'
 df_final_csn.to_csv(salida, index=True)
 
 fecha_inicio = datetime.datetime.today().strftime("%Y-%m-%d %H:%M:%S")
@@ -666,7 +673,8 @@ listaoutrangofull=[]
 for elemento in nuevalista:
     nombre_agencia = elemento[12:elemento.find('.')]
     # Enviamos a stderr para que aparezca en pantalla inmediatamente y no ensucie la variable de Bash
-    print(f"\nProcesando: {nombre_agencia} ✅\n", file=sys.stderr, end='')
+    #print(f"\nProcesando: {nombre_agencia} ✅\n", file=sys.stderr, end='')
+    print(f"\nProcesando: {nombre_agencia} \n", file=sys.stderr, end='')
     revisando(agencias, agencia, nombre_agencia, listafinal, listaoutrango)
 
 
@@ -722,7 +730,7 @@ cadena_formateada = df_final.to_string(index=False)
 with open(salidatxt, 'w', encoding='utf-8') as archivo:
     archivo.write(cadena_formateada)
 
-print(listaoutrango, file=sys.stderr)
+#print(listaoutrango, file=sys.stderr)
 # crear dataframe con listaoutrango
 df_out_rango = pd.DataFrame(listaoutrango)
 nombres_columnas = [
@@ -802,6 +810,8 @@ for _, row_out in df_out_rango.iterrows():
             }
             registros_cercanos_lista.append(asociacion)
     
+    #
+
     if registros_cercanos_lista:
         # 1. Crea el DataFrame con los eventos internacionales que fallaron
         df_previo = pd.DataFrame(registros_cercanos_lista)
@@ -814,15 +824,21 @@ for _, row_out in df_out_rango.iterrows():
         elif 'Fecha_Hora' in df_previo.columns:
             col_tiempo_error = 'Fecha_Hora'
 
-        # Guardamos los errores convirtiendo el texto a formato datetime real
+        # Guardamos los errores mapeando el tiempo original y la AGENCIA que falló
         lista_errores_datetime = []
         for indice, fila in df_previo.iterrows():
             texto_tiempo = str(fila[col_tiempo_error]).strip()
             try:
                 objeto_tiempo = datetime.datetime.strptime(texto_tiempo, "%Y-%m-%d %H:%M:%S")
+                # Rescatamos el error de 'fuerarangos' o 'paramout'
+                valor_fuerarango = str(fila.get('fuerarangos') or fila.get('paramout') or '').strip()
+                # Rescatamos la agencia específica que viene con el error
+                agencia_con_error = str(fila.get('Agencia') or fila.get('agencia') or '').strip()
+                
                 lista_errores_datetime.append({
                     'tiempo_obj': objeto_tiempo,
-                    'fuerarangos': str(fila.get('fuerarangos', ''))
+                    'agencia_err': agencia_con_error,
+                    'fuerarangos': valor_fuerarango
                 })
             except:
                 pass 
@@ -849,6 +865,7 @@ for _, row_out in df_out_rango.iterrows():
             # Bucle tradicional fila por fila para revisar el universo entero
             for indice, fila in df_universo.iterrows():
                 texto_tiempo_univ = str(fila[col_tiempo_univ]).strip()
+                agencia_univ = str(fila.get('Agencia') or fila.get('agencia') or '').strip()
                 
                 try:
                     tiempo_univ_obj = datetime.datetime.strptime(texto_tiempo_univ, "%Y-%m-%d %H:%M:%S")
@@ -859,7 +876,7 @@ for _, row_out in df_out_rango.iterrows():
                 for error in lista_errores_datetime:
                     diferencia = abs((tiempo_univ_obj - error['tiempo_obj']).total_seconds())
                     
-                    # ¡SI ESTÁ DENTRO DE LA VENTANA DE SEGUNDOS, ES EL MISMO SISMO!
+                    # ¡SI ESTÁ DENTRO DE LA VENTANA DE SEGUNDOS, ES PARTE DEL MISMO SISMO ASOCIADO!
                     if diferencia <= ventana_tolerancia:
                         
                         clave_familia = error['tiempo_obj']
@@ -870,6 +887,13 @@ for _, row_out in df_out_rango.iterrows():
                         
                         codigo_asociado = tiempos_ya_asignados[clave_familia]
                         
+                        # --- COMPARACIÓN DE AGENCIA ---
+                        # Solo si la fila actual del universo es de la misma agencia que reportó el error,
+                        # se le asigna el flag. Si es la solución base u otra agencia correcta, queda vacío "".
+                        v_fuerarango_final = ""
+                        if agencia_univ.upper() == error['agencia_err'].upper():
+                            v_fuerarango_final = error['fuerarangos']
+                        
                         # Construimos la fila con las cabeceras exactas en Mayúsculas que espera 'rellena'
                         nuevo_registro = {
                             'Fecha_Hora': texto_tiempo_univ,
@@ -879,20 +903,21 @@ for _, row_out in df_out_rango.iterrows():
                             'Mag.': fila.get('Mag.') or fila.get('mag'),
                             'Tipo Mag.': fila.get('Tipo Mag.') or fila.get('tipo_mag') or fila.get('tipo'),
                             'Referencia': fila.get('Referencia') or fila.get('ref'),
-                            'Agencia': fila.get('Agencia') or fila.get('agencia'),
+                            'Agencia': agencia_univ,
                             'Consulta': fila.get('Consulta') or fila.get('consulta'),
                             'asociado': codigo_asociado,
-                            'fuerarangos': error['fuerarangos']
+                            'fuerarangos': v_fuerarango_final
                         }
                         lista_salida_agrupada.append(nuevo_registro)
                         break 
 
             df_out_final = pd.DataFrame(lista_salida_agrupada)
+
         else:
             df_out_final = df_previo
 
-        print('df_out_final', file=sys.stderr)
-        print(df_out_final, file=sys.stderr)
+        #print('df_out_final', file=sys.stderr)
+        #print(df_out_final, file=sys.stderr)
 
         # 3. CONSTRUCCIÓN DE LA ESTRUCTURA NATIVA REAL SEGÚN TUS ÍNDICES FÍSICOS
         if not df_out_final.empty:
@@ -1024,7 +1049,7 @@ for _, row_out in df_out_rango.iterrows():
             # Guardamos a disco usando index=False para que la columna 'id_indice' actúe como la columna 0,
             # dejando a la Fecha_Hora en la columna 1 (fila[1]), Latitud en la 2 (fila[2]), etc.
             df_out_final.to_csv(salida_cercanos, index=False, encoding='utf-8')
-            print(f"\n✅ Archivo {salida_cercanos} exportado con éxito en formato nativo de 12 columnas.", file=sys.stderr)
+            #print(f"\n✅ Archivo {salida_cercanos} exportado con éxito en formato nativo de 12 columnas.", file=sys.stderr)
         else:
             print("No se encontraron sismos en el universo que cayeran en las ventanas.", file=sys.stderr)
     else:
@@ -1062,7 +1087,7 @@ tiempo_proc=fecha_termino-fecha_inicio
 #print(salida_out_rango)
 #print(salida_cercanos)
 
-print(f"\nArchivos generados: {salidatxt}, {salida}, {salida_out_rango}, {salida_cercanos}", file=sys.stderr, end='')
+print(f"\nArchivos generados: {salidatxt}, {salida}, {salida_out_rango}, {salida_cercanos}\n", file=sys.stderr, end='')
 #print(f"Tiempo de proceso: {tiempo_proc}", file=sys.stderr)
 
 # Imprime ÚNICAMENTE el valor que quieres que Bash reciba
@@ -1070,3 +1095,4 @@ print(f"\nArchivos generados: {salidatxt}, {salida}, {salida_out_rango}, {salida
 print(agencia)
 #time.sleep(30)
 #sys.exit(agencia)
+

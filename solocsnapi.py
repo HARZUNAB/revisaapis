@@ -5,6 +5,7 @@ df_full = pd.read_csv('listaoutrangofull.csv')
 df_rangos = pd.read_csv('listaoutrango.csv')
 
 # Forzamos que todas las columnas sean minúsculas para que 'fecha_hora' siempre exista
+df_full.columns = df_full.columns.str.lower()
 df_rangos.columns = df_rangos.columns.str.lower()
 
 df_full.columns = df_full.columns.str.strip()

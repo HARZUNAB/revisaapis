@@ -154,7 +154,7 @@ def ploteando(archivo_plot, perfil_plot, planta_plot, fuente, percibidos, agenci
                             coordenadas_perfil_usadas.add(coord_actual)
 
                         canvas.create_oval(x-5, y-5, x+5, y+5, fill=color, outline="black")
-                        canvas.create_text(x, y - 10, text=id, fill="black")
+                        canvas.create_text(x, y - 10, text=id, fill="dark red")
                         color = color1
                     
                     total_eventos = total_eventos + 1
@@ -217,9 +217,10 @@ def ploteando(archivo_plot, perfil_plot, planta_plot, fuente, percibidos, agenci
              
                         texto_mapa = str(id)
                         if evento.get('fuerarangos') and pd.notna(evento.get('fuerarangos')):
-                            texto_mapa = str(id) + " (" + str(evento.get('fuerarangos')) + ")"
+                            #texto_mapa = str(id) + " (" + str(evento.get('fuerarangos')) + ")"
+                            texto_mapa = str(id)
                             
-                        canvas_planta.create_text(x_plan, y_plan - 12, text=texto_mapa, fill="black")
+                        canvas_planta.create_text(x_plan, y_plan - 12, text=texto_mapa, fill="dark red")
 
                     color = color1
 
@@ -240,19 +241,25 @@ def ploteando(archivo_plot, perfil_plot, planta_plot, fuente, percibidos, agenci
         # Muestras de colores (Círculos)
         # CSN (Azul)
         canvas.create_oval(20 - 4, (nuevo_alto - 95) - 4, 20 + 4, (nuevo_alto - 95) + 4, fill="blue", outline="black")
-        canvas.create_text(35, nuevo_alto - 95, text="Solución local (CSN)", anchor=tk.W, font=fuente_texto, fill="black")
+        canvas.create_text(35, nuevo_alto - 95, text="Solución CSN", anchor=tk.W, font=fuente_texto, fill="black")
         
         # Agencia Base / Internacional (Verde / Amarillo)
         canvas.create_oval(20 - 4, (nuevo_alto - 75) - 4, 20 + 4, (nuevo_alto - 75) + 4, fill="green", outline="black")
-        canvas.create_text(35, nuevo_alto - 75, text=f"Solución Base ({agenciabase})", anchor=tk.W, font=fuente_texto, fill="black")
+        canvas.create_text(35, nuevo_alto - 75, text=f"Agencia Base ({agenciabase})", anchor=tk.W, font=fuente_texto, fill="black")
         
+        # Otras agencias (por defecto color1)
+        canvas.create_oval(20 - 4, (nuevo_alto - 55) - 4, 20 + 4, (nuevo_alto - 55) + 4, fill="yellow", outline="black")
+        canvas.create_text(35, nuevo_alto - 55, text="Otra agencia", anchor=tk.W, font=fuente_texto, fill="black")
+
+        """
         # Percibidos (Rojo)
         canvas.create_oval(20 - 4, (nuevo_alto - 55) - 4, 20 + 4, (nuevo_alto - 55) + 4, fill="red", outline="black")
-        canvas.create_text(35, nuevo_alto - 55, text="Evento Percibido (S)", anchor=tk.W, font=fuente_texto, fill="black")
+        canvas.create_text(35, nuevo_alto - 55, text="Evento Percibido CSN", anchor=tk.W, font=fuente_texto, fill="black")
+        """
 
         # Aro Magenta de Superposición
         canvas.create_oval(20 - 6, (nuevo_alto - 30) - 6, 20 + 6, (nuevo_alto - 30) + 6, outline="magenta", width=2)
-        canvas.create_oval(20 - 3, (nuevo_alto - 30) - 3, 20 + 3, (nuevo_alto - 30) + 3, fill="yellow", outline="black")
+        #canvas.create_oval(20 - 3, (nuevo_alto - 30) - 3, 20 + 3, (nuevo_alto - 30) + 3, fill="white", outline="black")
         canvas.create_text(35, nuevo_alto - 30, text="Soluciones Superpuestas", anchor=tk.W, font=fuente_texto, fill="magenta")
 
     # =========================================================================
@@ -299,15 +306,22 @@ def ploteando(archivo_plot, perfil_plot, planta_plot, fuente, percibidos, agenci
         canvas.create_oval(x_perfil_origen + 15 - 4, y_item - 4, x_perfil_origen + 15 + 4, y_item + 4, fill="green", outline="black")
         canvas.create_text(x_perfil_origen + 30, y_item, text=f"Agencia Base ({agenciabase})", anchor=tk.W, font=fuente_texto, fill="black")
         
+        # Símbolo 3: Otras agencias (por defecto color1)
+        y_item += espacio_items
+        canvas.create_oval(x_perfil_origen + 15 - 4, y_item - 4, x_perfil_origen + 15 + 4, y_item + 4, fill="yellow", outline="black")
+        canvas.create_text(x_perfil_origen + 30, y_item, text="Otra agencia", anchor=tk.W, font=fuente_texto, fill="black")
+
+        """
         # Símbolo 3: Evento Percibido (Rojo)
         y_item += espacio_items
         canvas.create_oval(x_perfil_origen + 15 - 4, y_item - 4, x_perfil_origen + 15 + 4, y_item + 4, fill="red", outline="black")
-        canvas.create_text(x_perfil_origen + 30, y_item, text="Evento Percibido", anchor=tk.W, font=fuente_texto, fill="black")
+        canvas.create_text(x_perfil_origen + 30, y_item, text="Evento Percibido CSN", anchor=tk.W, font=fuente_texto, fill="black")
+        """
 
         # Símbolo 4: Soluciones Superpuestas (Aro Magenta + Centro Agencia)
         y_item += espacio_items
         canvas.create_oval(x_perfil_origen + 15 - 7, y_item - 7, x_perfil_origen + 15 + 7, y_item + 7, outline="magenta", width=2)
-        canvas.create_oval(x_perfil_origen + 15 - 4, y_item - 4, x_perfil_origen + 15 + 4, y_item + 4, fill="green", outline="black")
+        #canvas.create_oval(x_perfil_origen + 15 - 4, y_item - 4, x_perfil_origen + 15 + 4, y_item + 4, fill="white", outline="black")
         canvas.create_text(x_perfil_origen + 30, y_item, text="Soluciones Superpuestas", anchor=tk.W, font=fuente_texto, fill="magenta")
 
     # ---------------------------------------------------------------------
@@ -330,15 +344,22 @@ def ploteando(archivo_plot, perfil_plot, planta_plot, fuente, percibidos, agenci
     canvas_planta.create_oval(x_planta_origen + 15 - 4, y_item - 4, x_planta_origen + 15 + 4, y_item + 4, fill="green", outline="black")
     canvas_planta.create_text(x_planta_origen + 30, y_item, text=f"Agencia Base ({agenciabase})", anchor=tk.W, font=fuente_texto, fill="black")
 
+    # Símbolo 3: Otras agencias (por defecto color1)
+    y_item += espacio_items
+    canvas_planta.create_oval(x_planta_origen + 15 - 4, y_item - 4, x_planta_origen + 15 + 4, y_item + 4, fill="yellow", outline="black")
+    canvas_planta.create_text(x_planta_origen + 30, y_item, text="Otra agencia", anchor=tk.W, font=fuente_texto, fill="black")
+
+    """
     # Símbolo 3: Evento Percibido (Rojo)
     y_item += espacio_items
     canvas_planta.create_oval(x_planta_origen + 15 - 4, y_item - 4, x_planta_origen + 15 + 4, y_item + 4, fill="red", outline="black")
-    canvas_planta.create_text(x_planta_origen + 30, y_item, text="Evento Percibido", anchor=tk.W, font=fuente_texto, fill="black")
+    canvas_planta.create_text(x_planta_origen + 30, y_item, text="Evento Percibido CSN", anchor=tk.W, font=fuente_texto, fill="black")
+    """
 
     # Símbolo 4: Soluciones Superpuestas (Aro Magenta + Centro Agencia)
     y_item += espacio_items
     canvas_planta.create_oval(x_planta_origen + 15 - 7, y_item - 7, x_planta_origen + 15 + 7, y_item + 7, outline="magenta", width=2)
-    canvas_planta.create_oval(x_planta_origen + 15 - 4, y_item - 4, x_planta_origen + 15 + 4, y_item + 4, fill="green", outline="black")
+    #canvas_planta.create_oval(x_planta_origen + 15 - 4, y_item - 4, x_planta_origen + 15 + 4, y_item + 4, fill="white", outline="black")
     canvas_planta.create_text(x_planta_origen + 30, y_item, text="Soluciones Superpuestas", anchor=tk.W, font=fuente_texto, fill="magenta")
 
     return canvas, canvas_planta, percibidos, total_eventos
@@ -765,7 +786,7 @@ print(listajson)
 archivo=sys.argv[1]
 fuente=sys.argv[2]
 agenciabase=sys.argv[3]
-print('agencia base:', agenciabase)
+#print('agencia base:', agenciabase)
 percibidos=0
 
 # resolucion para cada imagen y para el canvas

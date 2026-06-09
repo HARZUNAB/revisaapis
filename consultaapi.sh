@@ -3,7 +3,7 @@ SCRIPTS="/home/hriquelmez/Desarrollo"
 PROYECTO="revisaapis"
 
 # saca comentario cuando se desee hacer la consulta a las apis
-python3 $SCRIPTS/$PROYECTO/consultaapi.py $1 $2 $3
+#python3 $SCRIPTS/$PROYECTO/consultaapi.py $1 $2 $3
 
 # BUCLE DE VALIDACIÓN: Asegura que el archivo tenga extensión .csv y realmente exista
 while true; do
@@ -37,7 +37,13 @@ echo -e "\n***** Se consolida consultas api *****"
 #agenciabase=$(python3 /home/hriquelmez/Revision_Local/revisaapi.py "new_2_$archivo1")
 agenciabase=$(python3 $SCRIPTS/$PROYECTO/revisaapi.py "new_2_$archivo1")
 agenciabase=$(echo "$agenciabase" | xargs)
-#echo -e $agenciabase
+
+# [Opcional] Un respaldo por si la ejecución fallara y volviera vacía
+if [ -z "$agenciabase" ]; then
+    agenciabase="EMSC"
+fi
+
+echo -e "Agencia base:" $agenciabase
 echo -e "\n¿Que datos desea procesar para plotear?"
 echo -e "1-Datos eventquery"
 echo -e "2-Datos consultaapi EMSC"
@@ -147,7 +153,8 @@ then
     while IFS= read -r linea
     do
         #python3 /home/hriquelmez/Revision_Local/plotearapi.py $linea $fuente $agenciabase
-        python3 $SCRIPTS/$PROYECTO/plotearapi.py $linea $fuente $agenciabase
+        python3 $SCRIPTS/$PROYECTO/plotearapi.py "$linea" "$fuente" "$agenciabase"
+        #python3 $SCRIPTS/$PROYECTO/plotearapi.py $linea $fuente $agenciabase
     done < listadojson.txt
     rm listadojson.txt
     if [ $fuente = "eventquery" ]

@@ -45,14 +45,12 @@ for cuadrante in CUADRANTES_CHILE:
     try:
         response_EMSC = requests.get(BASE_URL_EMSC, params=parametros_EMSC, timeout=30)
         
-        # Si la API confirma que no hay contenido (204), pasamos silenciosamente
         if response_EMSC.status_code == 204:
             continue
             
         response_EMSC.raise_for_status()
         texto_respuesta = response_EMSC.text.strip()
         
-        # Si el cuerpo de respuesta está vacío o es una página HTML de error, controlamos el flujo
         if not texto_respuesta:
             continue
         if texto_respuesta.startswith("<html") or texto_respuesta.startswith("<!DOCTYPE html"):
@@ -80,7 +78,6 @@ for cuadrante in CUADRANTES_CHILE:
             lista = (fechahora_str, lat, lon, profundidad, magnitud, tipomag, lugar, agencia_fuente)
             listaevento.append(lista)
     except Exception as e:
-        # Solo muestra error si hay una falla real de conexión o un estatus HTTP inválido (ej: 500, 502)
         print(f"⚠️ EMSC ({cuadrante['name']}): Error crítico en la solicitud. Detalle: {e}")
 
 if listaevento:
@@ -88,7 +85,10 @@ if listaevento:
     df_EMSC.columns = ['Fecha_Hora', 'Latitud', 'Longitud', 'Prof.', 'Mag.', 'Tipo Mag.', 'Referencia', 'Agencia']
     df_EMSC['Fecha_Hora'] = pd.to_datetime(df_EMSC['Fecha_Hora'])
     df_EMSC = df_EMSC.drop_duplicates().sort_values(by='Fecha_Hora', ascending=True).reset_index(drop=True)
-    df_EMSC.to_csv('consultaapi_EMSC.csv', index=True)
+    
+    # CORRECCIÓN: Creamos un ID correlativo real desde 1 y guardamos con index=False
+    df_EMSC.insert(0, 'id', range(1, len(df_EMSC) + 1))
+    df_EMSC.to_csv('consultaapi_EMSC.csv', index=False)
     print(f"Solicitud exitosa, eventos únicos encontrados en EMSC: {len(df_EMSC)}")
 else:
     print("No se encontraron eventos sísmicos en el EMSC para los cuadrantes de Chile.")
@@ -158,7 +158,10 @@ if listaevento_usgs:
     df_usgs.columns = ['Fecha_Hora', 'Latitud', 'Longitud', 'Prof.', 'Mag.', 'Tipo Mag.', 'Referencia', 'Agencia']
     df_usgs['Fecha_Hora'] = pd.to_datetime(df_usgs['Fecha_Hora'])
     df_usgs = df_usgs.drop_duplicates().sort_values(by='Fecha_Hora', ascending=True).reset_index(drop=True)
-    df_usgs.to_csv('consultaapi_NEIC.csv', index=True)
+    
+    # CORRECCIÓN: ID correlativo real desde 1 y guardamos con index=False
+    df_usgs.insert(0, 'id', range(1, len(df_usgs) + 1))
+    df_usgs.to_csv('consultaapi_NEIC.csv', index=False)
     print(f"Solicitud exitosa, eventos únicos encontrados en USGS: {len(df_usgs)}")
 else:
     print("No se encontraron eventos sísmicos en el USGS para los cuadrantes de Chile.")
@@ -184,7 +187,6 @@ for cuadrante in CUADRANTES_CHILE:
         response.raise_for_status() 
         datos_csv = response.text 
         
-        # Si la respuesta solo contiene comentarios o está vacía, saltar
         if not datos_csv.strip() or all(line.startswith('#') for line in datos_csv.strip().split('\n')):
             continue
             
@@ -214,7 +216,9 @@ if dfs_gfz_list:
     df_final['Fecha_Hora'] = df_final['Fecha_Hora'].dt.strftime('%Y-%m-%d %H:%M:%S')
     df_final['Mag.'] = df_final['Mag.'].round(1)
 
+    # CORRECCIÓN: ID correlativo real desde 1 y guardamos con index=False
+    df_final.insert(0, 'id', range(1, len(df_final) + 1))
+    df_final.to_csv('consultaapi_GFZ.csv', index=False)
     print(f"Solicitud exitosa, eventos únicos encontrados en GFZ: {len(df_final)}\n")
-    df_final.to_csv('consultaapi_GFZ.csv', index=True)
 else:
     print("No se encontraron eventos sísmicos en el GFZ para los cuadrantes de Chile.\n")
