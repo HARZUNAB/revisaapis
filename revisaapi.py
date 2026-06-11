@@ -811,108 +811,122 @@ for _, row_out in df_out_rango.iterrows():
             registros_cercanos_lista.append(asociacion)
     
     #
-
     if registros_cercanos_lista:
-        # 1. Crea el DataFrame con los eventos internacionales que fallaron
+        # 1. Creamos el DataFrame base de errores conocidos
         df_previo = pd.DataFrame(registros_cercanos_lista)
         salida_cercanos = 'listaoutrangofull.csv'
         
-        # Identificamos el nombre de la columna de tiempo en tu lista de errores
         col_tiempo_error = 'fecha_hora'
         if 'fecha hora' in df_previo.columns:
             col_tiempo_error = 'fecha hora'
         elif 'Fecha_Hora' in df_previo.columns:
             col_tiempo_error = 'Fecha_Hora'
 
-        # Guardamos los errores mapeando el tiempo original y la AGENCIA que falló
-        lista_errores_datetime = []
+        # Agrupamos los errores por su 'firma única' original para evitar que sismos repetidos dupliquen el bucle
+        dict_errores_unicos = {}
+        id_asociado_actual = 1
+
         for indice, fila in df_previo.iterrows():
             texto_tiempo = str(fila[col_tiempo_error]).strip()
             try:
                 objeto_tiempo = datetime.datetime.strptime(texto_tiempo, "%Y-%m-%d %H:%M:%S")
-                # Rescatamos el error de 'fuerarangos' o 'paramout'
-                valor_fuerarango = str(fila.get('fuerarangos') or fila.get('paramout') or '').strip()
-                # Rescatamos la agencia específica que viene con el error
-                agencia_con_error = str(fila.get('Agencia') or fila.get('agencia') or '').strip()
+                lat_err = float(fila.get('Latitud') or fila.get('lat') or 0)
+                lon_err = float(fila.get('Longitud') or fila.get('lon') or 0)
                 
-                lista_errores_datetime.append({
-                    'tiempo_obj': objeto_tiempo,
-                    'agencia_err': agencia_con_error,
-                    'fuerarangos': valor_fuerarango
-                })
+                # Creamos una clave única basada en el evento físico (Tiempo redondeado a minutos, Lat truncada)
+                # Esto garantiza que las distintas quejas del mismo sismo se consoliden bajo un solo ID maestro
+                clave_evento = (objeto_tiempo.strftime("%Y-%m-%d %H:%M"), round(lat_err, 1), round(lon_err, 1))
+                
+                if clave_evento not in dict_errores_unicos:
+                    dict_errores_unicos[clave_evento] = {
+                        'id_asociado': id_asociado_actual,
+                        'tiempo_ref': objeto_tiempo,
+                        'lat_ref': lat_err,
+                        'lon_ref': lon_err,
+                        'alertas_agencias': {} # Guardamos qué error le corresponde a cada agencia culpable
+                    }
+                    id_asociado_actual += 1
+                
+                # Mapeamos qué flag de error tenía cada agencia para este evento específico
+                v_agencia = str(fila.get('Agencia') or fila.get('agencia') or '').strip().upper()
+                v_fuerarango = str(fila.get('fuerarangos') or fila.get('paramout') or '').strip()
+                dict_errores_unicos[clave_evento]['alertas_agencias'][v_agencia] = v_fuerarango
             except:
-                pass 
+                pass
 
-        # 2. RECORREMOS EL UNIVERSO (listaapifinal.csv) CON FILTROS DE VENTANA
+        # 2. RECORREMOS EL UNIVERSO CON FILTRO BASADO EN EL CANAL DE CONSULTA
         lista_salida_agrupada = []
         
         if os.path.exists('listaapifinal.csv'):
             df_universo = pd.read_csv('listaapifinal.csv')
             
-            # Identificamos la columna de tiempo en el archivo masivo
             col_tiempo_univ = 'Fecha_Hora'
             if 'fecha hora' in df_universo.columns:
                 col_tiempo_univ = 'fecha hora'
             elif 'fecha_hora' in df_universo.columns:
                 col_tiempo_univ = 'fecha_hora'
 
-            id_asociado_actual = 1
-            tiempos_ya_asignados = {} 
-
-            # Definimos tu ventana de tolerancia (120 segundos)
             ventana_tolerancia = 120 
+            UMBRAL_GRADOS_UNIV = 1.0
 
-            # Bucle tradicional fila por fila para revisar el universo entero
+            # BITÁCORA DE CONTROL MULTI-PARÁMETRO
+            # Ahora guardamos: (id_asociado, AGENCIA, CONSULTA)
+            # Esto permite que coexistan soluciones idénticas si vienen de APIs distintas.
+            asociados_agencias_escritos = set()
+
             for indice, fila in df_universo.iterrows():
                 texto_tiempo_univ = str(fila[col_tiempo_univ]).strip()
-                agencia_univ = str(fila.get('Agencia') or fila.get('agencia') or '').strip()
+                agencia_univ = str(fila.get('Agencia') or fila.get('agencia') or '').strip().upper()
+                consulta_univ = str(fila.get('Consulta') or fila.get('consulta') or '').strip().upper()
                 
                 try:
                     tiempo_univ_obj = datetime.datetime.strptime(texto_tiempo_univ, "%Y-%m-%d %H:%M:%S")
+                    lat_univ = float(fila.get('Latitud') or fila.get('lat') or 0)
+                    lon_univ = float(fila.get('Longitud') or fila.get('lon') or 0)
                 except:
                     continue 
 
-                # Cruzamos el sismo actual del universo contra toda nuestra lista de errores conocidos
-                for error in lista_errores_datetime:
-                    diferencia = abs((tiempo_univ_obj - error['tiempo_obj']).total_seconds())
+                # Buscamos correspondencia espacial y temporal con los errores conocidos
+                for clave, info_evento in dict_errores_unicos.items():
+                    dif_tiempo = abs((tiempo_univ_obj - info_evento['tiempo_ref']).total_seconds())
+                    dif_lat = abs(lat_univ - info_evento['lat_ref'])
+                    dif_lon = abs(lon_univ - info_evento['lon_ref'])
                     
-                    # ¡SI ESTÁ DENTRO DE LA VENTANA DE SEGUNDOS, ES PARTE DEL MISMO SISMO ASOCIADO!
-                    if diferencia <= ventana_tolerancia:
+                    # Validación estricta de ventana temporal y espacial
+                    if dif_tiempo <= ventana_tolerancia and dif_lat <= UMBRAL_GRADOS_UNIV and dif_lon <= UMBRAL_GRADOS_UNIV:
                         
-                        clave_familia = error['tiempo_obj']
+                        id_sismo_actual = info_evento['id_asociado']
                         
-                        if clave_familia not in tiempos_ya_asignados:
-                            tiempos_ya_asignados[clave_familia] = id_asociado_actual
-                            id_asociado_actual = id_asociado_actual + 1
+                        # El combo de control ahora incluye de dónde salió el dato (Consulta)
+                        combo_control = (id_sismo_actual, agencia_univ, consulta_univ)
                         
-                        codigo_asociado = tiempos_ya_asignados[clave_familia]
+                        # Si esta fila física exacta de este canal ya fue procesada, se salta
+                        if combo_control in asociados_agencias_escritos:
+                            break 
                         
-                        # --- COMPARACIÓN DE AGENCIA ---
-                        # Solo si la fila actual del universo es de la misma agencia que reportó el error,
-                        # se le asigna el flag. Si es la solución base u otra agencia correcta, queda vacío "".
-                        v_fuerarango_final = ""
-                        if agencia_univ.upper() == error['agencia_err'].upper():
-                            v_fuerarango_final = error['fuerarangos']
+                        # Recuperamos el flag de discrepancia sismológica
+                        v_fuerarango_final = info_evento['alertas_agencias'].get(agencia_univ, "")
                         
-                        # Construimos la fila con las cabeceras exactas en Mayúsculas que espera 'rellena'
                         nuevo_registro = {
                             'Fecha_Hora': texto_tiempo_univ,
-                            'Latitud': fila.get('Latitud') or fila.get('lat'),
-                            'Longitud': fila.get('Longitud') or fila.get('lon'),
+                            'Latitud': lat_univ,
+                            'Longitud': lon_univ,
                             'Prof.': fila.get('Prof.') or fila.get('prof'),
                             'Mag.': fila.get('Mag.') or fila.get('mag'),
                             'Tipo Mag.': fila.get('Tipo Mag.') or fila.get('tipo_mag') or fila.get('tipo'),
                             'Referencia': fila.get('Referencia') or fila.get('ref'),
-                            'Agencia': agencia_univ,
+                            'Agencia': fila.get('Agencia') or fila.get('agencia'),
                             'Consulta': fila.get('Consulta') or fila.get('consulta'),
-                            'asociado': codigo_asociado,
+                            'asociado': id_sismo_actual,
                             'fuerarangos': v_fuerarango_final
                         }
+                        
                         lista_salida_agrupada.append(nuevo_registro)
+                        asociados_agencias_escritos.add(combo_control) # Registramos el canal completo
                         break 
 
             df_out_final = pd.DataFrame(lista_salida_agrupada)
-
+   
         else:
             df_out_final = df_previo
 
