@@ -3,7 +3,7 @@ SCRIPTS="/home/hriquelmez/Desarrollo"
 PROYECTO="revisaapis"
 
 # saca comentario cuando se desee hacer la consulta a las apis
-#python3 $SCRIPTS/$PROYECTO/consultaapi.py $1 $2 $3
+python3 $SCRIPTS/$PROYECTO/consultaapi.py $1 $2 $3
 
 # BUCLE DE VALIDACIÓN: Asegura que el archivo tenga extensión .csv y realmente exista
 while true; do
